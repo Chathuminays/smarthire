@@ -1,0 +1,57 @@
+services:
+
+  # === DATABASES ===
+  postgres-user:
+    image: postgres:16
+    container_name: smarthire-postgres-user
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: smarthire
+      POSTGRES_PASSWORD: smarthire123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-user:/var/lib/postgresql/data
+
+  postgres-job:
+    image: postgres:16
+    container_name: smarthire-postgres-job
+    environment:
+      POSTGRES_DB: jobdb
+      POSTGRES_USER: smarthire
+      POSTGRES_PASSWORD: smarthire123
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata-job:/var/lib/postgresql/data
+
+  # === CACHE ===
+  redis:
+    image: redis:7-alpine
+    container_name: smarthire-redis
+    ports:
+      - "6379:6379"
+
+  # === MESSAGE BROKER ===
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: smarthire-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: smarthire-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+volumes:
+  pgdata-user:
+  pgdata-job:
